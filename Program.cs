@@ -1,7 +1,13 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Movies.Data;
+using Movies.Helpers;
+using Movies.Models;
 using Movies.Services;
+using System.Text;
 
 namespace Movies
 {
@@ -11,6 +17,37 @@ namespace Movies
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            //JWT Configration
+            builder.Services.Configure<JWT>(builder.Configuration.GetSection("JWT")); // map values in congiure to jwt class
+
+            builder.Services.AddIdentity<AppUser, IdentityRole>(options => {
+                options.SignIn.RequireConfirmedAccount = false;
+                options.Password.RequireDigit = false;
+                options.Password.RequiredLength = 6;
+                options.Password.RequireNonAlphanumeric = false;
+                options.Password.RequireUppercase = false;
+                options.Password.RequireLowercase = false;
+            }).AddEntityFrameworkStores<AppDbContext>();
+
+            builder.Services.AddAuthentication(opt =>
+            {
+                opt.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                opt.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            }).AddJwtBearer(o =>
+            {
+                o.RequireHttpsMetadata = false;
+                o.SaveToken = false;
+                o.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidIssuer = builder.Configuration["JWT:Issuer"],
+                    ValidAudience = builder.Configuration["JWT:Audience"],
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:Key"]))
+                };
+            });
             // Add services to the container.
 
             builder.Services.AddControllers();
@@ -24,6 +61,8 @@ namespace Movies
 
             builder.Services.AddTransient<IGenreService, GenreService>();
             builder.Services.AddTransient<IMovieService, MovieService>();
+            //Auth inject
+            builder.Services.AddScoped<IAuthService, AuthService>();
 
             builder.Services.AddAutoMapper(typeof(Program));
 
@@ -69,6 +108,7 @@ namespace Movies
 
             app.UseCors(c => c.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
 
