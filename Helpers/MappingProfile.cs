@@ -8,6 +8,8 @@ namespace Movies.Helpers
     {
         public MappingProfile()
         {
+            CreateMap<RegisterModel, AppUser>()
+                .ForMember(src => src.PasswordHash, opt => opt.Ignore());
             CreateMap<Movie, MoviesDetailsDto>();
             CreateMap<MovieDto, Movie>()
                 .ForMember(src => src.Poster, opt => opt.Ignore());

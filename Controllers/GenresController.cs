@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Movies.Data;
@@ -8,6 +9,7 @@ using Movies.Services;
 
 namespace Movies.Controllers
 {
+    [Authorize(Roles = "Admin")]
     [Route("api/[controller]")]
     [ApiController]
     public class GenresController : ControllerBase
@@ -18,6 +20,7 @@ namespace Movies.Controllers
         {
             _genreService = genreService;
         }
+        [AllowAnonymous]
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
@@ -25,6 +28,7 @@ namespace Movies.Controllers
 
             return Ok(genres);
         }
+        [AllowAnonymous]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(byte id)
         {

@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -9,6 +10,7 @@ using Movies.Services;
 
 namespace Movies.Controllers
 {
+    [Authorize(Roles = "Admin")]
     [Route("api/[controller]")]
     [ApiController]
     public class MoviesController : ControllerBase
@@ -25,6 +27,7 @@ namespace Movies.Controllers
             genreService = _genreService;
             _mapper = mapper;
         }
+        [AllowAnonymous]
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
@@ -32,6 +35,7 @@ namespace Movies.Controllers
             var data = _mapper.Map<IEnumerable<MoviesDetailsDto>>(movies);
             return Ok(data);
         }
+        [AllowAnonymous]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
@@ -55,6 +59,7 @@ namespace Movies.Controllers
             var data = _mapper.Map<MoviesDetailsDto>(movie);
             return Ok(data);
         }
+        [AllowAnonymous]
         [HttpGet("GetByGenre/{genreId}")]
         public async Task<IActionResult> GetByGenre(byte genreId)
         {
